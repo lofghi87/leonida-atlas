@@ -1,5 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
-<defs><pattern id="g" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#273944" stroke-width="1"/></pattern><radialGradient id="r"><stop stop-color="#173b3b"/><stop offset="1" stop-color="#101820"/></radialGradient></defs>
-<rect width="1600" height="1000" fill="url(#r)"/><rect width="1600" height="1000" fill="url(#g)"/>
-<g fill="none" stroke="#36515a" stroke-width="2" opacity=".45"><path d="M-20 210Q300 120 480 250T900 210T1620 330M-30 700Q300 600 550 740T1050 690T1620 800M300 -20Q240 260 400 430T300 1020M1180 -20Q1050 260 1250 520T1120 1020"/></g>
-<g fill="#c2d7d2" text-anchor="middle" font-family="Arial,sans-serif"><text x="800" y="445" font-size="34" letter-spacing="9">MAP LAYER NOT CONFIGURED</text><text x="800" y="500" font-size="18" opacity=".7">Carica una mappa di gioco autorizzata per abilitare la cartografia</text><text x="800" y="548" font-size="13" opacity=".45">Griglia tecnica temporanea — non rappresenta la geografia di GTA VI</text></g></svg>
+<defs>
+  <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+    <path d="M80 0H0V80" fill="none" stroke="#273944" stroke-width="1"/>
+  </pattern>
+  <radialGradient id="bg"><stop stop-color="#173b3b"/><stop offset="1" stop-color="#101820"/></radialGradient>
+</defs>
+<rect width="1600" height="1000" fill="url(#bg)"/>
+<rect width="1600" height="1000" fill="url(#grid)"/>
+<g fill="none" stroke="#36515a" stroke-width="2" opacity=".45">
+  <path d="M-20 210Q300 120 480 250T900 210T1620 330M-30 700Q300 600 550 740T1050 690T1620 800M300 -20Q240 260 400 430T300 1020M1180 -20Q1050 260 1250 520T1120 1020"/>
+</g>
+<g fill="#c2d7d2" text-anchor="middle" font-family="Arial,sans-serif">
+  <text x="800" y="430" font-size="34" font-weight="700" letter-spacing="5">CARTOGRAFIA NON ANCORA DISPONIBILE</text>
+  <text x="800" y="485" font-size="20" opacity=".8">La mappa verrà attivata quando sarà caricata un'immagine autorizzata</text>
+  <text x="800" y="535" font-size="15" opacity=".55">Questa è solo una griglia tecnica: non rappresenta la geografia di GTA VI</text>
+</g>
+</svg>
