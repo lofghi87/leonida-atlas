@@ -14,6 +14,9 @@ type MapCanvasProps = {
   onSelect: (discovery: Discovery) => void;
 };
 
+const MAP_WIDTH = 1364;
+const MAP_HEIGHT = 2048;
+
 export default function MapCanvas({
   discoveries,
   categories,
@@ -30,13 +33,18 @@ export default function MapCanvas({
   useEffect(() => {
     if (!elementRef.current || mapRef.current) return;
 
-    // Limiti fissi dell'immagine: impediscono di trascinare la mappa
-    // all'infinito e di perdere l'area cartografica fuori dallo schermo.
-    const bounds: L.LatLngBoundsExpression = [[0, 0], [1000, 1600]];
+    // Coordinate in pixel units: 1 map unit = 1 pixel at zoom 0.
+    const bounds: L.LatLngBoundsExpression = [
+      [0, 0],
+      [MAP_HEIGHT, MAP_WIDTH],
+    ];
+
     const map = L.map(elementRef.current, {
       crs: L.CRS.Simple,
-      minZoom: -2,
-      maxZoom: 3,
+      minZoom: -3,
+      maxZoom: 0,
+      zoomSnap: 0.1,
+      zoomDelta: 0.25,
       maxBounds: bounds,
       maxBoundsViscosity: 1,
       worldCopyJump: false,
@@ -45,22 +53,29 @@ export default function MapCanvas({
       inertia: false,
     });
 
-    L.imageOverlay("/maps/map-placeholder.svg", bounds, {
+    L.imageOverlay("/maps/leonida-map.webp", bounds, {
       interactive: false,
     }).addTo(map);
 
     map.fitBounds(bounds);
-    // Impedisce di rimpicciolire oltre la vista completa dell'immagine.
+    // The minimum is the full-map view; zoom 0 is the image's native pixel scale.
     map.setMinZoom(map.getZoom());
+    map.setMaxZoom(0);
     map.setMaxBounds(bounds);
+    map.panInsideBounds(bounds, { animate: false });
+
+    L.control.attribution({ prefix: false })
+      .addAttribution("Fan-made map artwork: Avatarsd")
+      .addTo(map);
+
     mapRef.current = map;
 
     map.on("click", (event) => {
       if (!map.getContainer().classList.contains("adding-marker")) return;
 
       callbacksRef.current.onPick({
-        x: Math.min(1, Math.max(0, event.latlng.lng / 1600)),
-        y: Math.min(1, Math.max(0, 1 - event.latlng.lat / 1000)),
+        x: Math.min(1, Math.max(0, event.latlng.lng / MAP_WIDTH)),
+        y: Math.min(1, Math.max(0, 1 - event.latlng.lat / MAP_HEIGHT)),
       });
       map.getContainer().classList.remove("adding-marker");
     });
@@ -92,7 +107,10 @@ export default function MapCanvas({
         iconAnchor: [9, 18],
       });
       const marker = L.marker(
-        [1000 - discovery.y * 1000, discovery.x * 1600],
+        [
+          MAP_HEIGHT - discovery.y * MAP_HEIGHT,
+          discovery.x * MAP_WIDTH,
+        ],
         { icon }
       );
       marker.on("click", () => callbacksRef.current.onSelect(discovery));
