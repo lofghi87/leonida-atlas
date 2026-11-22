@@ -1,0 +1,1 @@
+# Map asset\n\nUpload the permitted map image here as `leonida-map.webp` (1364 × 2048 px). The map component loads `/maps/leonida-map.webp`. The artwork attribution is displayed in the map controls.\n
