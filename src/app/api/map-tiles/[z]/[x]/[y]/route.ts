@@ -28,7 +28,7 @@ export async function GET(
     return new NextResponse("Tassello non valido", { status: 400 });
   }
 
-  // Con CRS.Simple l'asse verticale delle coordinate Leaflet è invertito.
+  // In CRS.Simple i valori Y dei tasselli Leaflet sono negativi.
   const row = -tileY - 1;
   const scale = 2 ** z;
   const scaledWidth = Math.ceil(MAP_WIDTH * scale);
@@ -36,25 +36,36 @@ export async function GET(
   const left = x * TILE_SIZE;
   const top = row * TILE_SIZE;
 
-  if (
-    x < 0 || row < 0 ||
-    left >= scaledWidth || top >= scaledHeight
-  ) {
+  if (x < 0 || row < 0 || left >= scaledWidth || top >= scaledHeight) {
     return new NextResponse("Tassello fuori mappa", { status: 404 });
   }
 
   const width = Math.min(TILE_SIZE, scaledWidth - left);
   const height = Math.min(TILE_SIZE, scaledHeight - top);
+
+  // Ritaglia prima la porzione necessaria: evita di ridimensionare tutta
+  // l'immagine per ogni tassello richiesto dal browser.
+  const sourceLeft = Math.floor(left / scale);
+  const sourceTop = Math.floor(top / scale);
+  const sourceRight = Math.min(MAP_WIDTH, Math.ceil((left + width) / scale));
+  const sourceBottom = Math.min(MAP_HEIGHT, Math.ceil((top + height) / scale));
+  const sourceWidth = Math.max(1, sourceRight - sourceLeft);
+  const sourceHeight = Math.max(1, sourceBottom - sourceTop);
   const imagePath = path.join(process.cwd(), "public", "maps", "leonida-map.webp");
 
   try {
     const source = await readFile(imagePath);
     const tile = await sharp(source)
-      .resize(scaledWidth, scaledHeight, {
+      .extract({
+        left: sourceLeft,
+        top: sourceTop,
+        width: sourceWidth,
+        height: sourceHeight,
+      })
+      .resize(width, height, {
         fit: "fill",
         kernel: sharp.kernel.lanczos3,
       })
-      .extract({ left, top, width, height })
       .extend({
         top: 0,
         left: 0,
