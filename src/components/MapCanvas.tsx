@@ -30,16 +30,29 @@ export default function MapCanvas({
   useEffect(() => {
     if (!elementRef.current || mapRef.current) return;
 
+    // Limiti fissi dell'immagine: impediscono di trascinare la mappa
+    // all'infinito e di perdere l'area cartografica fuori dallo schermo.
+    const bounds: L.LatLngBoundsExpression = [[0, 0], [1000, 1600]];
     const map = L.map(elementRef.current, {
       crs: L.CRS.Simple,
       minZoom: -2,
       maxZoom: 3,
+      maxBounds: bounds,
+      maxBoundsViscosity: 1,
+      worldCopyJump: false,
       zoomControl: true,
       attributionControl: false,
+      inertia: false,
     });
-    const bounds: L.LatLngBoundsExpression = [[0, 0], [1000, 1600]];
-    L.imageOverlay("/maps/map-placeholder.svg", bounds).addTo(map);
+
+    L.imageOverlay("/maps/map-placeholder.svg", bounds, {
+      interactive: false,
+    }).addTo(map);
+
     map.fitBounds(bounds);
+    // Impedisce di rimpicciolire oltre la vista completa dell'immagine.
+    map.setMinZoom(map.getZoom());
+    map.setMaxBounds(bounds);
     mapRef.current = map;
 
     map.on("click", (event) => {
