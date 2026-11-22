@@ -14,10 +14,9 @@ type MapCanvasProps = {
   onSelect: (discovery: Discovery) => void;
 };
 
-// Dimensioni effettive dell'immagine caricata in public/maps/leonida-map.webp.
+// Dimensioni della mappa originale caricata nel progetto.
 const MAP_WIDTH = 1122;
 const MAP_HEIGHT = 1536;
-const MAX_DETAIL_ZOOM = 2;
 
 export default function MapCanvas({
   discoveries,
@@ -42,8 +41,8 @@ export default function MapCanvas({
 
     const map = L.map(elementRef.current, {
       crs: L.CRS.Simple,
-      minZoom: -2,
-      maxZoom: MAX_DETAIL_ZOOM,
+      minZoom: -3,
+      maxZoom: 0,
       zoomSnap: 0.1,
       zoomDelta: 0.25,
       maxBounds: bounds,
@@ -52,34 +51,22 @@ export default function MapCanvas({
       zoomControl: true,
       attributionControl: false,
       inertia: false,
-      wheelDebounceTime: 40,
-      wheelPxPerZoomLevel: 80,
     });
 
-    // La mappa viene servita come tasselli 256×256: ogni livello carica
-    // soltanto le porzioni visibili e consente uno zoom più graduale.
-    const tiles = L.tileLayer("/api/map-tiles/{z}/{x}/{y}", {
-      tileSize: 256,
-      minZoom: -2,
-      maxZoom: MAX_DETAIL_ZOOM,
-      minNativeZoom: -2,
-      maxNativeZoom: MAX_DETAIL_ZOOM,
-      noWrap: true,
-      bounds: L.latLngBounds(bounds),
-      keepBuffer: 3,
-      updateWhenIdle: true,
-      updateWhenZooming: false,
-      attribution: "Fan-made map artwork: Avatarsd",
-    });
-    tiles.addTo(map);
+    L.imageOverlay("/maps/leonida-map.webp", bounds, {
+      interactive: false,
+    }).addTo(map);
 
     map.fitBounds(bounds);
     map.setMinZoom(map.getZoom());
-    map.setMaxZoom(MAX_DETAIL_ZOOM);
+    map.setMaxZoom(0);
     map.setMaxBounds(bounds);
     map.panInsideBounds(bounds, { animate: false });
 
-    L.control.attribution({ prefix: false }).addTo(map);
+    L.control.attribution({ prefix: false })
+      .addAttribution("Fan-made map artwork: Avatarsd")
+      .addTo(map);
+
     mapRef.current = map;
 
     map.on("click", (event) => {
