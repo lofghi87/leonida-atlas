@@ -14,8 +14,10 @@ type MapCanvasProps = {
   onSelect: (discovery: Discovery) => void;
 };
 
-const MAP_WIDTH = 1364;
-const MAP_HEIGHT = 2048;
+// Dimensioni effettive dell'immagine caricata in public/maps/leonida-map.webp.
+const MAP_WIDTH = 1122;
+const MAP_HEIGHT = 1536;
+const MAX_DETAIL_ZOOM = 2;
 
 export default function MapCanvas({
   discoveries,
@@ -33,7 +35,6 @@ export default function MapCanvas({
   useEffect(() => {
     if (!elementRef.current || mapRef.current) return;
 
-    // Coordinate in pixel units: 1 map unit = 1 pixel at zoom 0.
     const bounds: L.LatLngBoundsExpression = [
       [0, 0],
       [MAP_HEIGHT, MAP_WIDTH],
@@ -41,8 +42,8 @@ export default function MapCanvas({
 
     const map = L.map(elementRef.current, {
       crs: L.CRS.Simple,
-      minZoom: -3,
-      maxZoom: 0,
+      minZoom: -2,
+      maxZoom: MAX_DETAIL_ZOOM,
       zoomSnap: 0.1,
       zoomDelta: 0.25,
       maxBounds: bounds,
@@ -51,23 +52,34 @@ export default function MapCanvas({
       zoomControl: true,
       attributionControl: false,
       inertia: false,
+      wheelDebounceTime: 40,
+      wheelPxPerZoomLevel: 80,
     });
 
-    L.imageOverlay("/maps/leonida-map.webp", bounds, {
-      interactive: false,
-    }).addTo(map);
+    // La mappa viene servita come tasselli 256×256: ogni livello carica
+    // soltanto le porzioni visibili e consente uno zoom più graduale.
+    const tiles = L.tileLayer("/api/map-tiles/{z}/{x}/{y}", {
+      tileSize: 256,
+      minZoom: -2,
+      maxZoom: MAX_DETAIL_ZOOM,
+      minNativeZoom: -2,
+      maxNativeZoom: MAX_DETAIL_ZOOM,
+      noWrap: true,
+      bounds: L.latLngBounds(bounds),
+      keepBuffer: 3,
+      updateWhenIdle: true,
+      updateWhenZooming: false,
+      attribution: "Fan-made map artwork: Avatarsd",
+    });
+    tiles.addTo(map);
 
     map.fitBounds(bounds);
-    // The minimum is the full-map view; zoom 0 is the image's native pixel scale.
     map.setMinZoom(map.getZoom());
-    map.setMaxZoom(0);
+    map.setMaxZoom(MAX_DETAIL_ZOOM);
     map.setMaxBounds(bounds);
     map.panInsideBounds(bounds, { animate: false });
 
-    L.control.attribution({ prefix: false })
-      .addAttribution("Fan-made map artwork: Avatarsd")
-      .addTo(map);
-
+    L.control.attribution({ prefix: false }).addTo(map);
     mapRef.current = map;
 
     map.on("click", (event) => {
